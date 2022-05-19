@@ -4,10 +4,7 @@
       name="emoji-invoker"
       :events="{ click: (e) => toggle(e) }"
     ></slot>
-    <div
-      v-if="display.visible"
-      v-click-outside="hide"
-    >
+    <div v-if="display.visible">
       <slot
         name="emoji-picker"
         :emojis="emojis"
@@ -32,8 +29,6 @@
       visible: boolean
     }
   }
-
-  type ClickOutsideElement = HTMLElement & { __vueClickOutside__: ((e: MouseEvent) => void) | null }
 
   export default /*#__PURE__*/Vue.extend({
     name: 'EmojiPicker',
@@ -93,41 +88,17 @@
         this.display.visible = ! this.display.visible
         this.display.x = e.clientX
         this.display.y = e.clientY
+        this.$emit('toggle', this.display.visible)
       },
       hide(): void {
         this.display.visible = false
+        this.$emit('toggle', this.display.visible)
       },
       escape(e: KeyboardEvent): void {
         if (this.display.visible === true && e.keyCode === 27) {
           this.display.visible = false
         }
       },
-    },
-    directives: {
-      'click-outside': {
-        bind(el: ClickOutsideElement, binding: any) {
-          if (typeof binding.value !== 'function') {
-            return
-          }
-
-          const bubble = binding.modifiers.bubble
-          const handler = (e: any) => {
-            if (bubble || (! el.contains(e.target) && el !== e.target)) {
-              binding.value(e)
-            }
-          }
-          el.__vueClickOutside__ = handler
-
-          document.addEventListener('click', handler)
-        },
-        unbind(el: ClickOutsideElement) {
-          if (el.__vueClickOutside__ !== null) {
-            document.removeEventListener('click', el.__vueClickOutside__)
-
-            el.__vueClickOutside__ = null
-          }
-        },
-      } as any,
     },
     mounted() {
       document.addEventListener('keyup', this.escape)
